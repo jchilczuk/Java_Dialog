@@ -4,6 +4,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -23,39 +27,6 @@ public class GUI extends JFrame{
 
         JFrame frame = new JFrame();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        JPanel inputPanel = getjPanel();
-
-
-        JPanel buttonPanel = new JPanel();
-        JButton okButton = new JButton("OK");
-        buttonPanel.add(okButton);
-
-        frame.add(inputPanel, BorderLayout.CENTER);
-        frame.add(buttonPanel, BorderLayout.SOUTH);
-        frame.setBounds(100, 100, 500, 500);
-        frame.setVisible(true);
-        okButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                Object source = e.getSource();
-                if (source == okButton) {
-                    ifEmpty(inputPanel);
-                    /*ifValidName(nameField.getText());
-                    ifValidName(surnameField.getText());
-                    ifValidDate(dateField.getText());
-                    if (!ifValidPesel(peselField.getText(), dateField.getText())) {
-                        JOptionPane.showMessageDialog(null, "Wprowadzono błędny PESEL", "Błąd", JOptionPane.ERROR_MESSAGE);
-                    }
-                    ifValidEmail(emailField.getText());
-                    if (ifEmpty(frame) && !ifValidName(nameField.getText()) && !ifValidName(surnameField.getText()) && !ifValidDate(dateField.getText()) && !ifValidPesel(peselField.getText(), dateField.getText()) && !ifValidEmail(emailField.getText())) {
-                        save(nameField.getText(), surnameField.getText(), dateField.getText(), peselField.getText(), emailField.getText(), getGender(genderPanel));
-                    }*/
-                }
-            }
-        });
-    }
-
-    private static JPanel getjPanel() {
         JPanel inputPanel = new JPanel();
 
         JTextField nameField = new JTextField( 10);
@@ -95,9 +66,41 @@ public class GUI extends JFrame{
         inputPanel.add(genderPanel);
 
         inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.Y_AXIS));
-        return inputPanel;
-    }
 
+
+        JPanel buttonPanel = new JPanel();
+        JButton okButton = new JButton("OK");
+        buttonPanel.add(okButton);
+
+        frame.add(inputPanel, BorderLayout.CENTER);
+        frame.add(buttonPanel, BorderLayout.SOUTH);
+        frame.setBounds(100, 100, 500, 500);
+        frame.setVisible(true);
+        okButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Object source = e.getSource();
+                if (source == okButton) {
+                    if(!ifEmpty(inputPanel)) {
+                        ifValidName(nameField.getText());
+                        ifValidName(surnameField.getText());
+                        ifValidDate(dateField.getText());
+                        try {
+                            if (!ifValidPesel(peselField.getText(), dateField.getText())) {
+                                JOptionPane.showMessageDialog(null, "Wprowadzono błędny PESEL", "Błąd", JOptionPane.ERROR_MESSAGE);
+                            }
+                        }catch (ArrayIndexOutOfBoundsException e1) {
+                            JOptionPane.showMessageDialog(null, "Błędny format daty", "Błąd", JOptionPane.ERROR_MESSAGE);
+                        }
+                        ifValidEmail(emailField.getText());
+                        if (ifValidName(nameField.getText()) && ifValidName(surnameField.getText()) && ifValidDate(dateField.getText()) && ifValidPesel(peselField.getText(), dateField.getText()) && ifValidEmail(emailField.getText())) {
+                            save(nameField.getText(), surnameField.getText(), dateField.getText(), peselField.getText(), emailField.getText(), getGender(genderPanel));
+                    }
+                    }
+                }
+            }
+        });
+    }
 
     private static JPanel getGenderJPanel() {
         JRadioButton femaleRadioButton = new JRadioButton("Kobieta");
@@ -119,14 +122,14 @@ public class GUI extends JFrame{
 
 
     public static boolean ifValidName(String name) {
-        if (name != null && !name.matches("[a-zA-Z]+")) {
-            JOptionPane.showMessageDialog(null, "Wprowadzone imię jest błędne", "Błąd", JOptionPane.ERROR_MESSAGE);
+        if (!name.matches("[a-zA-Z]+")) {
+            JOptionPane.showMessageDialog(null, "Wprowadzone dane są błędne", "Błąd", JOptionPane.ERROR_MESSAGE);
             return false;
         }
         return true;
     }
 
-    public static boolean ifValidPesel(String pesel, String date) {
+    public static boolean ifValidPesel(String pesel, String date) throws ArrayIndexOutOfBoundsException{
         if(!pesel.isEmpty() && !date.isEmpty()){
             String[] dmy = date.split("/");
             String day = dmy[0];
@@ -267,8 +270,13 @@ public class GUI extends JFrame{
                 properties.setProperty("E-mail", email);
                 properties.setProperty("Plec", gender);
 
-                try (FileOutputStream fileOutputStream = new FileOutputStream("resources/user.properties")) {
-                    properties.store(fileOutputStream, "Dane uzytkownika");
+                Path resourcesFolderPath = Paths.get("resources");
+                try {
+                    Files.createDirectories(resourcesFolderPath);
+                    Path propertiesFilePath = resourcesFolderPath.resolve("user.properties");
+                    try (OutputStream outputStream = Files.newOutputStream(propertiesFilePath)) {
+                        properties.store(outputStream, "Dane użytkownika");
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
