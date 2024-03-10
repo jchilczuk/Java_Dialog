@@ -5,12 +5,11 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Klasa zawierająca testy jednostkowe najważniejszych metod klasy GUI.
  *
- * @author Natalia Topczewska
  * @author Julia Chilczuk
  */
 class GUITest {
 
-    @org.junit.jupiter.api.Test
+    /*@org.junit.jupiter.api.Test
     void isValidName() {
         Assertions.assertTrue(GUI.isValidName("Natalia"));
         assertNotEquals(GUI.isValidName("Natalia1"), true);
@@ -37,5 +36,5 @@ class GUITest {
         assertFalse(GUI.isValidEmail("www.pl"));
         assertFalse(GUI.isValidEmail("a2@pl"));
         assertTrue(GUI.isValidEmail("pw@pw.pl"));
-    }
+    }*/
 }

@@ -1,7 +1,6 @@
 /**
  * Klasa opisująca pojedynczego użytkownika.
  *
- * @author Natalia Topczewska
  * @author Julia Chilczuk
  */
 public class User {

@@ -1,5 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.ParseException;
@@ -12,147 +14,132 @@ import java.util.Properties;
  * Klasa prezentująca GUI, umożliwiająca wypełnienie pól i
  * uzyskanie wypełnionego danymi obiektu klasy User.
  *
- * @author Natalia Topczewska
  * @author Julia Chilczuk
  */
 
-public class GUI {
+public class GUI extends JFrame{
+
     public static void createGUI() throws ParseException {
-        JTextField nameField = new JTextField(10);
-        JTextField surnameField = new JTextField(10);
-        JTextField dateField = new JTextField(10);
-        JTextField peselField = new JTextField(10);
-        JTextField emailField = new JTextField(10);
+
+        JFrame frame = new JFrame();
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        JPanel inputPanel = getjPanel();
 
 
-        JPanel myPanel = new JPanel();
-        myPanel.setLayout(new BoxLayout(myPanel, BoxLayout.Y_AXIS));
+        JPanel buttonPanel = new JPanel();
+        JButton okButton = new JButton("OK");
+        buttonPanel.add(okButton);
 
-        myPanel.add(new JLabel("Imię:"));
-        myPanel.add(nameField);
-        myPanel.add(Box.createVerticalStrut(20)); // Spacer
-
-        myPanel.add(new JLabel("Nazwisko:"));
-        myPanel.add(surnameField);
-        myPanel.add(Box.createVerticalStrut(20)); // Spacer
-
-        myPanel.add(new JLabel("Data urodzenia: (format: DD/MM/YYYY)"));
-        myPanel.add(dateField);
-        myPanel.add(Box.createVerticalStrut(20)); // Spacer
-
-        myPanel.add(new JLabel("Pesel:"));
-        myPanel.add(peselField);
-        myPanel.add(Box.createVerticalStrut(20)); // Spacer
-
-        myPanel.add(new JLabel("E-mail:"));
-        myPanel.add(emailField);
-        myPanel.add(Box.createVerticalStrut(20));
-
-        myPanel.add(new JLabel("Płeć:"));
-        JPanel genderPanel = getGenderJPanel();
-        myPanel.add(genderPanel);
-
-        int result;
-        do {
-            result = JOptionPane.showConfirmDialog(null, myPanel, "Dane użytkownika", JOptionPane.OK_CANCEL_OPTION);
-            if (result == JOptionPane.OK_OPTION && !isValidName(nameField.getText())) {
-                JOptionPane.showMessageDialog(null, "Wprowadzono błędne imię", "Błąd", JOptionPane.ERROR_MESSAGE);
-            } else if (result == JOptionPane.OK_OPTION && !isValidName(surnameField.getText())) {
-                JOptionPane.showMessageDialog(null, "Wprowadzono błędne nazwisko", "Błąd", JOptionPane.ERROR_MESSAGE);
-            } else if (result == JOptionPane.OK_OPTION && !ifValidDate(dateField.getText())) {
-                JOptionPane.showMessageDialog(null, "Wprowadzono błędną datę urodzenia", "Błąd", JOptionPane.ERROR_MESSAGE);
-            } else if (result == JOptionPane.OK_OPTION && !ifValidPesel(peselField.getText(), dateField.getText())) {
-                JOptionPane.showMessageDialog(null, "Wprowadzono błędny PESEL", "Błąd", JOptionPane.ERROR_MESSAGE);
-            } else if (result == JOptionPane.OK_OPTION && !isValidEmail(emailField.getText())) {
-                JOptionPane.showMessageDialog(null, "Wprowadzono błędny adres e-mail", "Błąd", JOptionPane.ERROR_MESSAGE);
-            }
-
-        } while (result == JOptionPane.OK_OPTION &&
-                (nameField.getText().isEmpty() ||
-                        surnameField.getText().isEmpty() ||
-                        !isValidName(nameField.getText()) ||
-                        !isValidName(surnameField.getText()) ||
-                        !ifValidPesel(peselField.getText(), dateField.getText()) ||
-                        !ifValidDate(dateField.getText()) ||
-                        !isValidEmail(emailField.getText())));
-
-
-        if (result == JOptionPane.OK_OPTION) {
-            //JOptionPane.showMessageDialog(null, "Dziękujemy za wprowadzenie danych :)");
-            Object[] options = {"Zatwierdź"};
-
-            int acceptResult = JOptionPane.showOptionDialog(null,
-                    "Wprowadzone dane:\n" +
-                            "Imię: " + nameField.getText() + "\n" +
-                            "Nazwisko: " + surnameField.getText() + "\n" +
-                            "Data urodzenia: " + dateField.getText() + "\n" +
-                            "Pesel: " + peselField.getText() + "\n" +
-                            "e-mail: " + emailField.getText() + "\n" +
-                            "Płeć: " + getGender(genderPanel) + "\n",
-                    "Potwierdzenie",
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.QUESTION_MESSAGE,
-                    null,
-                    options,
-                    options[0]);
-            if( acceptResult == JOptionPane.OK_OPTION){
-                Properties properties = new Properties();
-                properties.setProperty("Imie", nameField.getText());
-                properties.setProperty("Nazwisko", surnameField.getText());
-                properties.setProperty("Data urodzenia", dateField.getText());
-                properties.setProperty("Pesel", peselField.getText());
-                properties.setProperty("E-mail", emailField.getText());
-                properties.setProperty("Plec", getGender(genderPanel));
-
-                try (FileOutputStream fileOutputStream = new FileOutputStream("resources/user.properties")) {
-                    properties.store(fileOutputStream, "Dane uzytkownika");
-                } catch (IOException e) {
-                    e.printStackTrace();
+        frame.add(inputPanel, BorderLayout.CENTER);
+        frame.add(buttonPanel, BorderLayout.SOUTH);
+        frame.setBounds(100, 100, 500, 500);
+        frame.setVisible(true);
+        okButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Object source = e.getSource();
+                if (source == okButton) {
+                    ifEmpty(inputPanel);
+                    /*ifValidName(nameField.getText());
+                    ifValidName(surnameField.getText());
+                    ifValidDate(dateField.getText());
+                    if (!ifValidPesel(peselField.getText(), dateField.getText())) {
+                        JOptionPane.showMessageDialog(null, "Wprowadzono błędny PESEL", "Błąd", JOptionPane.ERROR_MESSAGE);
+                    }
+                    ifValidEmail(emailField.getText());
+                    if (ifEmpty(frame) && !ifValidName(nameField.getText()) && !ifValidName(surnameField.getText()) && !ifValidDate(dateField.getText()) && !ifValidPesel(peselField.getText(), dateField.getText()) && !ifValidEmail(emailField.getText())) {
+                        save(nameField.getText(), surnameField.getText(), dateField.getText(), peselField.getText(), emailField.getText(), getGender(genderPanel));
+                    }*/
                 }
-                User user = createUser(properties);
-                System.out.println("Utworzono nowego użytkownika: " + user);
             }
-            /*else if (acceptResult == JOptionPane.NO_OPTION){
-                JOptionPane.showMessageDialog(null, "Spróbuj jeszcze raz :)");
-            }*/
-        }
+        });
     }
 
-        private static JPanel getGenderJPanel() {
-            JRadioButton femaleRadioButton = new JRadioButton("Kobieta");
-            JRadioButton maleRadioButton = new JRadioButton("Mężczyzna");
-            JRadioButton otherRadioButton = new JRadioButton("Brak odpowiedzi");
+    private static JPanel getjPanel() {
+        JPanel inputPanel = new JPanel();
 
-            ButtonGroup genderGroup = new ButtonGroup();
-            genderGroup.add(femaleRadioButton);
-            genderGroup.add(maleRadioButton);
-            genderGroup.add(otherRadioButton);
+        JTextField nameField = new JTextField( 10);
+        nameField.setBounds(50, 20, 200, 30);
+        JTextField surnameField = new JTextField(10);
+        surnameField.setBounds(50, 40, 200, 30);
+        JTextField dateField = new JTextField(10);
+        dateField.setBounds(50, 60, 200, 30);
+        JTextField peselField = new JTextField(10);
+        peselField.setBounds(50, 80, 200, 30);
+        JTextField emailField = new JTextField(10);
+        emailField.setBounds(50, 100, 200, 30);
 
-            JPanel genderPanel = new JPanel();
-            genderPanel.setLayout(new BoxLayout(genderPanel, BoxLayout.Y_AXIS));
-            genderPanel.add(femaleRadioButton);
-            genderPanel.add(maleRadioButton);
-            genderPanel.add(otherRadioButton);
-            return genderPanel;
+        JLabel name = new JLabel("Name");
+        inputPanel.add(name);
+        inputPanel.add(nameField);
+
+        JLabel surname = new JLabel("Surname");
+        inputPanel.add(surname);
+        inputPanel.add(surnameField);
+
+        JLabel date = new JLabel("Date of birth");
+        inputPanel.add(date);
+        inputPanel.add(dateField);
+
+        JLabel pesel = new JLabel("PESEL");
+        inputPanel.add(pesel);
+        inputPanel.add(peselField);
+
+        JLabel email = new JLabel("E-mail");
+        inputPanel.add(email);
+        inputPanel.add(emailField);
+
+        JLabel gender = new JLabel("Gender");
+        JPanel genderPanel = getGenderJPanel();
+        inputPanel.add(gender);
+        inputPanel.add(genderPanel);
+
+        inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.Y_AXIS));
+        return inputPanel;
+    }
+
+
+    private static JPanel getGenderJPanel() {
+        JRadioButton femaleRadioButton = new JRadioButton("Kobieta");
+        JRadioButton maleRadioButton = new JRadioButton("Mężczyzna");
+        JRadioButton otherRadioButton = new JRadioButton("Brak odpowiedzi");
+
+        ButtonGroup genderGroup = new ButtonGroup();
+        genderGroup.add(femaleRadioButton);
+        genderGroup.add(maleRadioButton);
+        genderGroup.add(otherRadioButton);
+
+        JPanel genderPanel = new JPanel();
+        genderPanel.setLayout(new BoxLayout(genderPanel, BoxLayout.Y_AXIS));
+        genderPanel.add(femaleRadioButton);
+        genderPanel.add(maleRadioButton);
+        genderPanel.add(otherRadioButton);
+        return genderPanel;
+    }
+
+
+    public static boolean ifValidName(String name) {
+        if (name != null && !name.matches("[a-zA-Z]+")) {
+            JOptionPane.showMessageDialog(null, "Wprowadzone imię jest błędne", "Błąd", JOptionPane.ERROR_MESSAGE);
+            return false;
         }
+        return true;
+    }
 
-        public static boolean isValidName(String name) {
-            return name.matches("[a-zA-Z]+");
-        }
-
-        public static boolean ifValidPesel(String pesel, String date){
+    public static boolean ifValidPesel(String pesel, String date) {
+        if(!pesel.isEmpty() && !date.isEmpty()){
             String[] dmy = date.split("/");
             String day = dmy[0];
             String month = dmy[1];
             String year = dmy[2];
 
-            if (pesel == null || pesel.length() != 11 || !pesel.matches("\\d+")
-                    || Integer.parseInt(year) <=1900 || Integer.parseInt(year) >= 2024) {
+            if (pesel.length() != 11 || !pesel.matches("\\d+")
+                    || Integer.parseInt(year) <= 1900 || Integer.parseInt(year) >= 2024) {
                 return false;
             }
 
             //dwie pierwsze cyfy peselu to 2 ostatnie cyfry roku urodzenia
-            if (year.charAt(3) != pesel.charAt(1) || year.charAt(2) != pesel.charAt(0)){
+            if (year.charAt(3) != pesel.charAt(1) || year.charAt(2) != pesel.charAt(0)) {
                 return false;
             }
 
@@ -160,22 +147,22 @@ public class GUI {
 
 
             int monthInPesel = Integer.parseInt(String.valueOf(pesel.charAt(2)) + String.valueOf(pesel.charAt(3)));
-            if (Integer.parseInt(year) >=1900 && Integer.parseInt(year) <= 1999){
+            if (Integer.parseInt(year) >= 1900 && Integer.parseInt(year) <= 1999) {
                 return (Objects.equals(month, String.valueOf(monthInPesel)));
             }
 
             //po 2000 roku dodajemy 20
 
-            if (Integer.parseInt(year) >=2000 && Integer.parseInt(year) <= 2024){
-                return (Objects.equals(Integer.parseInt(month)+20 , monthInPesel));
+            if (Integer.parseInt(year) >= 2000 && Integer.parseInt(year) <= 2024) {
+                return (Objects.equals(Integer.parseInt(month) + 20, monthInPesel));
 
             }
 
 
             //5. i 6. cyfra peselu to numer dnia miesiąca
             int dayInPesel = Integer.parseInt(String.valueOf(pesel.charAt(4)) + String.valueOf(pesel.charAt(5)));
-                if (!Objects.equals(day, String.valueOf(dayInPesel))){
-                    return false;
+            if (!Objects.equals(day, String.valueOf(dayInPesel))) {
+                return false;
             }
 
             //cyfra kontrolna
@@ -189,36 +176,107 @@ public class GUI {
             int calculatedLastNumber = (10 - (sum % 10)) % 10;
 
             return lastNumber == calculatedLastNumber;
-        }
 
-        public static boolean ifValidDate(String dateStr) {
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-            sdf.setLenient(false); //setLenient used to set the leniency of the interpretation of date and time
-            try {
-                Date date = sdf.parse(dateStr);
-                Date currentDate = new Date();
-                return date.before(currentDate) && dateStr.equals(sdf.format(date));
-            } catch (ParseException e) {
+        }
+        return false;
+    }
+
+
+    public static boolean ifValidDate(String dateStr) {
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        sdf.setLenient(false); //setLenient used to set the leniency of the interpretation of date and time
+        try {
+            Date date = sdf.parse(dateStr);
+            Date currentDate = new Date();
+            if (!date.before(currentDate) || !dateStr.equals(sdf.format(date))) {
+                JOptionPane.showMessageDialog(null, "Wprowadzona data jest błędna", "Błąd", JOptionPane.ERROR_MESSAGE);
                 return false;
             }
+        } catch (ParseException ignored) {
         }
+        return true;
+    }
 
-        private static String getGender (JPanel genderPanel){
-            Component[] components = genderPanel.getComponents();
-            for (Component component : components) {
-                if (component instanceof JRadioButton radioButton) {
-                    if (radioButton.isSelected()) {
-                        return radioButton.getText();
-                    }
+    private static String getGender(JPanel genderPanel) {
+        Component[] components = genderPanel.getComponents();
+        for (Component component : components) {
+            if (component instanceof JRadioButton radioButton) {
+                if (radioButton.isSelected()) {
+                    return radioButton.getText();
                 }
             }
-            return "Brak odpowiedzi";
+        }
+        return "Brak odpowiedzi";
+    }
+
+    private static boolean ifEmpty(JPanel panel) {
+        int counter = 0;
+        Component[] components = panel.getComponents();
+        for (Component component : components) {
+            if (component instanceof JTextField textField) {
+                if (textField.getText().isEmpty()) {
+                    textField.setBackground(Color.PINK);
+                    counter = counter + 1;
+                } else if (!textField.getText().isEmpty()) {
+                    textField.setBackground(Color.WHITE);
+                }
+            }
+        }
+        if (counter > 0) {
+            JOptionPane.showMessageDialog(null, "Wymagane wypełnienie zaznaczonych pól", "Błąd", JOptionPane.ERROR_MESSAGE);
+            return true;
+        }
+        return false;
+    }
+
+        public static boolean ifValidEmail(String email) {
+            String regex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+            if(!email.matches(regex)){
+                JOptionPane.showMessageDialog(null, "Wprowadzony adres e-mail jest błędny", "Błąd", JOptionPane.ERROR_MESSAGE);
+                return  false;
+            }
+            return true;
         }
 
-        public static boolean isValidEmail(String email) {
-            String regex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
-            return email.matches(regex);
+        private static void save (String name, String surname, String date, String pesel, String email, String gender) {
+
+            Object[] options = {"Zatwierdź"};
+
+            int acceptResult = JOptionPane.showOptionDialog(null,
+                    "Wprowadzone dane:\n" +
+                            "Imię: " + name + "\n" +
+                            "Nazwisko: " + surname + "\n" +
+                            "Data urodzenia: " + date + "\n" +
+                            "Pesel: " + pesel + "\n" +
+                            "e-mail: " + email + "\n" +
+                            "Płeć: " + gender + "\n",
+                    "Potwierdzenie",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    options,
+                    options[0]);
+
+            if (acceptResult == JOptionPane.OK_OPTION) {
+                Properties properties = new Properties();
+                properties.setProperty("Imie", name);
+                properties.setProperty("Nazwisko", surname);
+                properties.setProperty("Data urodzenia", date);
+                properties.setProperty("Pesel", pesel);
+                properties.setProperty("E-mail", email);
+                properties.setProperty("Plec", gender);
+
+                try (FileOutputStream fileOutputStream = new FileOutputStream("resources/user.properties")) {
+                    properties.store(fileOutputStream, "Dane uzytkownika");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                User user = GUI.createUser(properties);
+                System.out.println("Utworzono nowego użytkownika: " + user);
+            }
         }
+
         private static User createUser(Properties properties) {
             String name = properties.getProperty("Imie");
             String surname = properties.getProperty("Nazwisko");
